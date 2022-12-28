@@ -1,0 +1,47 @@
+/* CSS Document */
+body{
+color:#333333;
+margin:0px;
+font-size:12px;
+font-family:Arial, Helvetica, sans-serif;
+}
+table {
+border-collapse: collapse;
+}
+
+.lefter{
+	padding-left:5px;
+	height:30px;
+}
+.lefter a{
+	color:#aaa;
+	font-size:14px;
+	font-weight:bold;
+	
+}
+.content_box
+{
+	margin:20px;
+}
+
+/*
+     FILE ARCHIVED ON 21:21:20 Mar 24, 2013 AND RETRIEVED FROM THE
+     INTERNET ARCHIVE ON 20:30:46 Dec 28, 2022.
+     JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
+
+     ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
+     SECTION 108(a)(3)).
+*/
+/*
+playback timings (ms):
+  captures_list: 97.779
+  exclusion.robots: 0.198
+  exclusion.robots.policy: 0.182
+  cdx.remote: 0.131
+  esindex: 0.017
+  LoadShardBlock: 67.551 (3)
+  PetaboxLoader3.datanode: 665.633 (4)
+  CDXLines.iter: 15.455 (3)
+  load_resource: 670.099
+  PetaboxLoader3.resolve: 47.375
+*/
