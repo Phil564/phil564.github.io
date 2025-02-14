@@ -7,6 +7,72 @@
     </head>
     <body>
         <h1>Currently revamping</h1>
-        <h1>"People is like a sponge. If youre around yucky liquid youll soak it all up and become yucky yourself." -Socrates</h1>
-    </body>
+		<form id="form">
+			<input id="file" type="file" accept=".enc" style="color: white;">
+			<input id="key" placeholder="Encryption Key">
+			<button type="decrypt">Decrypt</button>
+		</form>
+		<a id="result" style="color: white;"></a>
+		<script>
+			var $form = document.getElementById("form")
+			function showMessage(message) {
+				document.getElementById("result").innerHTML = message
+			}
+			
+			function decryptFileInsideForm() {
+				var file = document.querySelector('#file').files[0]
+				var keystring = document.querySelector('#key').value
+				if (!file) {
+					showMessage("No file selected. Please choose a file.");
+					return;
+				}
+				if (keystring.length!==16) {
+					showMessage("Encryption Key must be 16 characters.");
+					return;
+				}
+				const reader = new FileReader();
+				reader.onload = () => {
+					var fileContents = reader.result;
+
+					var counter = new Uint8Array(16);
+					counter.set(new Uint8Array(fileContents, 32, 8)); // nonce
+					counter.set(new Uint8Array(8), 8); // counter (empty, lmfao.)
+
+					var ciphertext = new Uint8Array(fileContents, 40, fileContents.byteLength - 40); // have to remove 40 bytes, tag (32 bytes, useless for now) + nonce (8 bytes)
+
+					var textencoder = new TextEncoder();
+					var keybytes = textencoder.encode(keystring);
+
+					window.crypto.subtle.importKey("raw", keybytes, {name: "AES-CTR"}, false, ["encrypt", "decrypt"]).then(function(key){
+						window.crypto.subtle.decrypt({
+							name: "AES-CTR",
+							counter: counter,
+							length: 64
+						}, key, ciphertext).then(function(decrypted){
+							var blob = new Blob([decrypted]);
+							const fileURL = URL.createObjectURL(blob);
+							const downloadLink = document.createElement('a');
+							downloadLink.href = fileURL;
+							downloadLink.download = file.name.substring(0, file.name.length - 4);;
+							document.body.appendChild(downloadLink);
+							downloadLink.click();
+						}).catch(function(err){
+							showMessage(err);
+						});
+					}).catch(function(err){
+						showMessage(err);
+					});
+				};
+				reader.onerror = () => {
+					showMessage("Error reading the file. Please try again.");
+				};
+				reader.readAsArrayBuffer(file);
+			}
+			
+			$form.addEventListener('submit', function (event) {
+				event.preventDefault()
+				decryptFileInsideForm()
+			})
+		</script>
+	</body>
 </html>
