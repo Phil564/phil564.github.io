@@ -34,28 +34,49 @@
 				reader.onload = () => {
 					var fileContents = reader.result;
 
+					var tag = new Uint8Array(fileContents, 0, 32);
+					var nonce = new Uint8Array(fileContents, 32, 8);
+					var ciphertext = new Uint8Array(fileContents, 40, fileContents.byteLength - 40);
+
 					var counter = new Uint8Array(16);
-					counter.set(new Uint8Array(fileContents, 32, 8)); // nonce
+					counter.set(nonce); // nonce
 					counter.set(new Uint8Array(8), 8); // counter (empty, lmfao.)
 
-					var ciphertext = new Uint8Array(fileContents, 40, fileContents.byteLength - 40); // have to remove 40 bytes, tag (32 bytes, useless for now) + nonce (8 bytes)
+					var hmacdata = new Uint8Array(8 + ciphertext.length);
+					hmacdata.set(nonce); // nonce
+					hmacdata.set(ciphertext, nonce.length); // ciphertext
 
 					var textencoder = new TextEncoder();
 					var keybytes = textencoder.encode(keystring);
 
-					window.crypto.subtle.importKey("raw", keybytes, {name: "AES-CTR"}, false, ["encrypt", "decrypt"]).then(function(key){
-						window.crypto.subtle.decrypt({
-							name: "AES-CTR",
-							counter: counter,
-							length: 64
-						}, key, ciphertext).then(function(decrypted){
-							var blob = new Blob([decrypted]);
-							const fileURL = URL.createObjectURL(blob);
-							const downloadLink = document.createElement('a');
-							downloadLink.href = fileURL;
-							downloadLink.download = file.name.substring(0, file.name.length - 4);;
-							document.body.appendChild(downloadLink);
-							downloadLink.click();
+					window.crypto.subtle.importKey("raw", keybytes, {name: "HMAC", hash: {name: "SHA-256"}}, false, ["sign", "verify"]).then(hmackey => {
+						window.crypto.subtle.sign("HMAC", hmackey, hmacdata).then(signature => {
+							var keyverification = new Uint8Array(signature);
+							for (var i = 0; i < 32; i++) {
+								if (keyverification[i] !== tag[i]) {
+									showMessage("Encryption Key is wrong.");
+									return;
+								}
+							}
+							window.crypto.subtle.importKey("raw", keybytes, {name: "AES-CTR"}, false, ["encrypt", "decrypt"]).then(function(aeskey){
+								window.crypto.subtle.decrypt({
+									name: "AES-CTR",
+									counter: counter,
+									length: 64
+								}, aeskey, ciphertext).then(function(decrypted){
+									var blob = new Blob([decrypted]);
+									const fileURL = URL.createObjectURL(blob);
+									const downloadLink = document.createElement('a');
+									downloadLink.href = fileURL;
+									downloadLink.download = file.name.substring(0, file.name.length - 4);;
+									document.body.appendChild(downloadLink);
+									downloadLink.click();
+								}).catch(function(err){
+									showMessage(err);
+								});
+							}).catch(function(err){
+								showMessage(err);
+							});
 						}).catch(function(err){
 							showMessage(err);
 						});
