@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Phil564's website</title>
-        <link rel="stylesheet" href="/style.css">
-    </head>
-    <body>
-        <h1>Currently revamping</h1>
+	<head>
+		<meta charset="UTF-8">
+		<title>Phil564's website</title>
+		<link rel="stylesheet" href="/style.css">
+	</head>
+	<body>
+		<h1>Currently revamping</h1>
 		<form id="form">
 			<input id="file" type="file" accept=".enc" style="color: white;">
 			<input id="key" placeholder="Encryption Key">
@@ -14,14 +14,14 @@
 		</form>
 		<a id="result" style="color: white;"></a>
 		<script>
-			var $form = document.getElementById("form")
+			var $form = document.getElementById("form");
 			function showMessage(message) {
-				document.getElementById("result").innerHTML = message
+				document.getElementById("result").innerHTML = message;
 			}
-			
+
 			function decryptFileInsideForm() {
-				var file = document.querySelector('#file').files[0]
-				var keystring = document.querySelector('#key').value
+				var file = document.querySelector('#file').files[0];
+				var keystring = document.querySelector('#key').value;
 				if (!file) {
 					showMessage("No file selected. Please choose a file.");
 					return;
@@ -49,8 +49,8 @@
 					var textencoder = new TextEncoder();
 					var keybytes = textencoder.encode(keystring);
 
-					window.crypto.subtle.importKey("raw", keybytes, {name: "HMAC", hash: {name: "SHA-256"}}, false, ["sign", "verify"]).then(hmackey => {
-						window.crypto.subtle.sign("HMAC", hmackey, hmacdata).then(signature => {
+					window.crypto.subtle.importKey("raw", keybytes, {name: "HMAC", hash: {name: "SHA-256"}}, false, ["sign", "verify"]).then(function(hmackey) {
+						window.crypto.subtle.sign("HMAC", hmackey, hmacdata).then(function(signature) {
 							var keyverification = new Uint8Array(signature);
 							for (var i = 0; i < 32; i++) {
 								if (keyverification[i] !== tag[i]) {
@@ -58,12 +58,12 @@
 									return;
 								}
 							}
-							window.crypto.subtle.importKey("raw", keybytes, {name: "AES-CTR"}, false, ["encrypt", "decrypt"]).then(function(aeskey){
+							window.crypto.subtle.importKey("raw", keybytes, {name: "AES-CTR"}, false, ["encrypt", "decrypt"]).then(function(aeskey) {
 								window.crypto.subtle.decrypt({
 									name: "AES-CTR",
 									counter: counter,
 									length: 64
-								}, aeskey, ciphertext).then(function(decrypted){
+								}, aeskey, ciphertext).then(function(decrypted) {
 									var blob = new Blob([decrypted]);
 									const fileURL = URL.createObjectURL(blob);
 									const downloadLink = document.createElement('a');
@@ -71,16 +71,17 @@
 									downloadLink.download = file.name.substring(0, file.name.length - 4);;
 									document.body.appendChild(downloadLink);
 									downloadLink.click();
-								}).catch(function(err){
+									showMessage("File decrypted");
+								}).catch(function(err) {
 									showMessage(err);
 								});
-							}).catch(function(err){
+							}).catch(function(err) {
 								showMessage(err);
 							});
-						}).catch(function(err){
+						}).catch(function(err) {
 							showMessage(err);
 						});
-					}).catch(function(err){
+					}).catch(function(err) {
 						showMessage(err);
 					});
 				};
@@ -89,7 +90,7 @@
 				};
 				reader.readAsArrayBuffer(file);
 			}
-			
+
 			$form.addEventListener('submit', function (event) {
 				event.preventDefault()
 				decryptFileInsideForm()
